@@ -1,0 +1,10 @@
+GET http://localhost:2345/health HTTP/1.1
+
+###
+
+POST http://localhost:2345/example HTTP/1.1
+content-type: application/json
+
+{
+    "value": "kaladin"
+}

@@ -1,0 +1,173 @@
+// @ts-nocheck
+import { IDefenseScenario } from '../interfaces';
+
+export const DEFENSE_SCENARIOS: IDefenseScenario[] = [
+    {
+        name: 'Missile Guidance System',
+        description: 'Critical missile guidance and navigation systems',
+        systemType: 'missile',
+        failureTypes: [
+            'GPS signal degradation',
+            'Inertial measurement unit drift',
+            'Target lock lost',
+            'Communication blackout',
+            'Electromagnetic interference'
+        ],
+        criticalConditions: [
+            'Terminal guidance phase',
+            'Mid-course correction',
+            'Launch sequence',
+            'Target acquisition'
+        ],
+        expectedBehaviors: [
+            'Graceful degradation to backup systems',
+            'Error state reporting',
+            'Safe abort procedures',
+            'Emergency protocols activation'
+        ]
+    },
+    {
+        name: 'Radar Detection System',
+        description: 'Air defense radar and tracking systems',
+        systemType: 'radar',
+        failureTypes: [
+            'False echo generation',
+            'Range measurement errors',
+            'Azimuth calculation drift',
+            'Clutter filtering failure',
+            'Doppler shift corruption'
+        ],
+        criticalConditions: [
+            'Multiple target tracking',
+            'Low altitude detection',
+            'Electronic countermeasures',
+            'Weather interference'
+        ],
+        expectedBehaviors: [
+            'Target discrimination',
+            'Track continuity',
+            'Threat assessment',
+            'Alert generation'
+        ]
+    },
+    {
+        name: 'Satellite Communication',
+        description: 'Military satellite communication systems',
+        systemType: 'satellite',
+        failureTypes: [
+            'Link budget degradation',
+            'Encryption key corruption',
+            'Antenna pointing errors',
+            'Signal jamming',
+            'Orbital position drift'
+        ],
+        criticalConditions: [
+            'Command transmission',
+            'Intelligence gathering',
+            'Coordination protocols',
+            'Emergency communications'
+        ],
+        expectedBehaviors: [
+            'Automatic gain control',
+            'Frequency hopping',
+            'Error correction',
+            'Backup link activation'
+        ]
+    },
+    {
+        name: 'Drone Control System',
+        description: 'Unmanned aerial vehicle control and navigation',
+        systemType: 'drone',
+        failureTypes: [
+            'Control link timeout',
+            'Battery management failure',
+            'Sensor fusion errors',
+            'Autonomous navigation failure',
+            'Payload system malfunction'
+        ],
+        criticalConditions: [
+            'Autonomous flight mode',
+            'Mission critical phases',
+            'Return to base sequence',
+            'Emergency landing'
+        ],
+        expectedBehaviors: [
+            'Fail-safe protocols',
+            'Emergency landing procedures',
+            'Data link recovery',
+            'Mission abort capabilities'
+        ]
+    },
+    {
+        name: 'Naval Combat System',
+        description: 'Ship-based weapons and defense systems',
+        systemType: 'naval',
+        failureTypes: [
+            'Weapon system timeout',
+            'Fire control computer errors',
+            'Radar cross-section changes',
+            'Sonar interference',
+            'Navigation system drift'
+        ],
+        criticalConditions: [
+            'Combat engagement',
+            'Threat detection',
+            'Defensive countermeasures',
+            'Navigation in hostile waters'
+        ],
+        expectedBehaviors: [
+            'Weapons safety protocols',
+            'Threat prioritization',
+            'Damage control',
+            'Emergency procedures'
+        ]
+    },
+    {
+        name: 'Ground Vehicle Defense',
+        description: 'Armored vehicle protection and control systems',
+        systemType: 'ground',
+        failureTypes: [
+            'Active protection system failure',
+            'Thermal imaging corruption',
+            'Communication radio failure',
+            'Engine management errors',
+            'Armor effectiveness degradation'
+        ],
+        criticalConditions: [
+            'Combat operations',
+            'Convoy movement',
+            'Base defense',
+            'Reconnaissance missions'
+        ],
+        expectedBehaviors: [
+            'Threat detection',
+            'Countermeasure deployment',
+            'Crew protection',
+            'Tactical communication'
+        ]
+    },
+    {
+        name: 'Cyber Defense System',
+        description: 'Network security and cyber warfare systems',
+        systemType: 'cyber',
+        failureTypes: [
+            'Intrusion detection bypass',
+            'Encryption algorithm weakness',
+            'Authentication system compromise',
+            'Network segmentation breach',
+            'Malware signature evasion'
+        ],
+        criticalConditions: [
+            'Active cyber attack',
+            'Zero-day exploit',
+            'Insider threat',
+            'Supply chain compromise'
+        ],
+        expectedBehaviors: [
+            'Threat isolation',
+            'Incident response',
+            'System quarantine',
+            'Forensic data preservation'
+        ]
+    }
+];
