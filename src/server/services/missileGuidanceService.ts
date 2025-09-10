@@ -235,3 +235,5 @@ export class MissileGuidanceService {
     return Math.atan2(velocity.y, velocity.x);
   }
 }
+
+export const missileGuidanceService = new MissileGuidanceService();

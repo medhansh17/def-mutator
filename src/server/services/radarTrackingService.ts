@@ -361,3 +361,11 @@ export class RadarTrackingService {
         };
     }
 }
+
+export const radarTrackingService = new RadarTrackingService({
+    frequency: 10e9,
+    power: 1000,
+    beamWidth: 0.5,
+    pulseRepetitionRate: 1000,
+    range: { min: 0, max: 100000 }
+});

@@ -1,0 +1,85 @@
+{
+  "sourceFile": "src\\server\\services\\missileGuidanceService.ts",
+  "context": {
+    "filePath": "src\\server\\services\\missileGuidanceService.ts",
+    "originalCode": "import {\r\n  IMissileGuidanceData,\r\n  IGPSSignal,\r\n  INavigationResult,\r\n} from \"./interfaces\";\r\n\r\nexport class MissileGuidanceService {\r\n  private static readonly GPS_MIN_SATELLITES = 4;\r\n  private static readonly GPS_MIN_ACCURACY = 5.0; // meters\r\n  private static readonly CRITICAL_DISTANCE_THRESHOLD = 100; // meters\r\n  private static readonly COMMUNICATION_TIMEOUT = 3000; // milliseconds\r\n\r\n  /**\r\n   * Critical missile guidance calculation for terminal phase navigation\r\n   * This system controls missile trajectory during the most critical phase\r\n   * @param guidanceData Current missile state and target information\r\n   * @param gpsSignal GPS receiver data\r\n   * @returns Navigation commands for missile control systems\r\n   */\r\n  public calculateGuidanceVector(\r\n    guidanceData: IMissileGuidanceData,\r\n    gpsSignal: IGPSSignal\r\n  ): INavigationResult {\r\n    try {\r\n      // Validate GPS signal integrity - CRITICAL for navigation accuracy\r\n      if (!this.validateGPSSignal(gpsSignal)) {\r\n        console.warn(\"GPS signal degraded, switching to backup navigation\");\r\n        return this.executeBackupNavigation(guidanceData);\r\n      }\r\n\r\n      // Calculate distance to target\r\n      const distanceToTarget = this.calculateDistance(\r\n        guidanceData.currentPosition,\r\n        guidanceData.targetCoordinates\r\n      );\r\n\r\n      // Terminal guidance phase - highest precision required\r\n      if (\r\n        distanceToTarget < MissileGuidanceService.CRITICAL_DISTANCE_THRESHOLD\r\n      ) {\r\n        return this.executeTerminalGuidance(guidanceData, distanceToTarget);\r\n      }\r\n\r\n      // Mid-course guidance\r\n      return this.executeMidCourseGuidance(guidanceData);\r\n    } catch (error) {\r\n      console.error(\"CRITICAL: Guidance calculation failed\", error);\r\n      return this.executeEmergencyAbort();\r\n    }\r\n  }\r\n\r\n  /**\r\n   * Validates GPS signal quality for navigation reliability\r\n   * Defense systems require minimum 4 satellites with <5m accuracy\r\n   */\r\n  private validateGPSSignal(gpsSignal: IGPSSignal): boolean {\r\n    if (gpsSignal.satellites < MissileGuidanceService.GPS_MIN_SATELLITES) {\r\n      return false;\r\n    }\r\n\r\n    if (gpsSignal.accuracy > MissileGuidanceService.GPS_MIN_ACCURACY) {\r\n      return false;\r\n    }\r\n\r\n    // Check for signal age - stale data indicates potential jamming\r\n    const currentTime = Date.now();\r\n    const signalAge = currentTime - gpsSignal.timestamp;\r\n\r\n    if (signalAge > MissileGuidanceService.COMMUNICATION_TIMEOUT) {\r\n      return false;\r\n    }\r\n\r\n    return gpsSignal.signalStrength > 0.7; // 70% minimum signal strength\r\n  }\r\n\r\n  /**\r\n   * Terminal guidance for final approach phase\r\n   * Requires highest precision and fastest response time\r\n   */\r\n  private executeTerminalGuidance(\r\n    guidanceData: IMissileGuidanceData,\r\n    distanceToTarget: number\r\n  ): INavigationResult {\r\n    const bearing = this.calculateBearing(\r\n      guidanceData.currentPosition,\r\n      guidanceData.targetCoordinates\r\n    );\r\n\r\n    // High-precision terminal guidance calculations\r\n    const courseCorrection = {\r\n      pitch: this.calculatePitchCorrection(guidanceData, bearing),\r\n      yaw: this.calculateYawCorrection(guidanceData, bearing),\r\n      roll: 0, // Minimal roll in terminal phase\r\n    };\r\n\r\n    const thrustVector = {\r\n      magnitude: Math.min(1.0, distanceToTarget / 50), // Reduce thrust as approaching target\r\n      direction: bearing,\r\n    };\r\n\r\n    return {\r\n      courseCorrection,\r\n      thrustVector,\r\n      confidenceLevel: 0.95,\r\n      statusCode: \"NOMINAL\",\r\n    };\r\n  }\r\n\r\n  /**\r\n   * Mid-course guidance for cruise phase navigation\r\n   */\r\n  private executeMidCourseGuidance(\r\n    guidanceData: IMissileGuidanceData\r\n  ): INavigationResult {\r\n    const bearing = this.calculateBearing(\r\n      guidanceData.currentPosition,\r\n      guidanceData.targetCoordinates\r\n    );\r\n\r\n    const courseCorrection = {\r\n      pitch: this.calculatePitchCorrection(guidanceData, bearing) * 0.7,\r\n      yaw: this.calculateYawCorrection(guidanceData, bearing) * 0.7,\r\n      roll: this.calculateRollCorrection(guidanceData),\r\n    };\r\n\r\n    const thrustVector = {\r\n      magnitude: 0.8, // Steady cruise thrust\r\n      direction: bearing,\r\n    };\r\n\r\n    return {\r\n      courseCorrection,\r\n      thrustVector,\r\n      confidenceLevel: 0.85,\r\n      statusCode: \"NOMINAL\",\r\n    };\r\n  }\r\n\r\n  /**\r\n   * Backup navigation when GPS fails - uses inertial navigation\r\n   * CRITICAL: Must maintain navigation capability under electronic warfare\r\n   */\r\n  private executeBackupNavigation(\r\n    guidanceData: IMissileGuidanceData\r\n  ): INavigationResult {\r\n    console.warn(\"Operating on backup inertial navigation - reduced accuracy\");\r\n\r\n    // Simplified inertial-only navigation\r\n    const estimatedBearing = this.estimateBearingFromVelocity(\r\n      guidanceData.velocity\r\n    );\r\n\r\n    return {\r\n      courseCorrection: {\r\n        pitch: 0.1, // Conservative corrections\r\n        yaw: 0.1,\r\n        roll: 0,\r\n      },\r\n      thrustVector: {\r\n        magnitude: 0.6, // Reduced thrust for safety\r\n        direction: estimatedBearing,\r\n      },\r\n      confidenceLevel: 0.6,\r\n      statusCode: \"DEGRADED\",\r\n    };\r\n  }\r\n\r\n  /**\r\n   * Emergency abort sequence - critical safety protocol\r\n   */\r\n  private executeEmergencyAbort(): INavigationResult {\r\n    console.error(\"EXECUTING EMERGENCY ABORT SEQUENCE\");\r\n\r\n    return {\r\n      courseCorrection: {\r\n        pitch: 0,\r\n        yaw: 0,\r\n        roll: 0,\r\n      },\r\n      thrustVector: {\r\n        magnitude: 0, // Cut thrust\r\n        direction: 0,\r\n      },\r\n      confidenceLevel: 0,\r\n      statusCode: \"ABORT\",\r\n    };\r\n  }\r\n\r\n  private calculateDistance(pos1: any, pos2: any): number {\r\n    // Simplified distance calculation (real implementation would use proper geodesic calculations)\r\n    const dx = pos2.latitude - pos1.latitude;\r\n    const dy = pos2.longitude - pos1.longitude;\r\n    const dz = pos2.altitude - pos1.altitude;\r\n    return Math.sqrt(dx * dx + dy * dy + dz * dz) * 111000; // Convert to meters\r\n  }\r\n\r\n  private calculateBearing(from: any, to: any): number {\r\n    const dx = to.longitude - from.longitude;\r\n    const dy = to.latitude - from.latitude;\r\n    return Math.atan2(dy, dx);\r\n  }\r\n\r\n  private calculatePitchCorrection(\r\n    guidanceData: IMissileGuidanceData,\r\n    targetBearing: number\r\n  ): number {\r\n    const altitudeDiff =\r\n      guidanceData.targetCoordinates.altitude -\r\n      guidanceData.currentPosition.altitude;\r\n    const basePitch = Math.atan(altitudeDiff / 1000) * 0.5; // Conservative pitch correction\r\n\r\n    // Adjust pitch based on bearing alignment for more realistic calculation\r\n    const bearingFactor = Math.cos(targetBearing) * 0.1;\r\n    return basePitch + bearingFactor;\r\n  }\r\n\r\n  private calculateYawCorrection(\r\n    guidanceData: IMissileGuidanceData,\r\n    bearing: number\r\n  ): number {\r\n    // Calculate required yaw adjustment\r\n    const currentHeading = Math.atan2(\r\n      guidanceData.velocity.y,\r\n      guidanceData.velocity.x\r\n    );\r\n    return (bearing - currentHeading) * 0.3; // Proportional correction\r\n  }\r\n\r\n  private calculateRollCorrection(guidanceData: IMissileGuidanceData): number {\r\n    // Stabilize roll during mid-course\r\n    return -guidanceData.velocity.z * 0.1;\r\n  }\r\n\r\n  private estimateBearingFromVelocity(velocity: any): number {\r\n    return Math.atan2(velocity.y, velocity.x);\r\n  }\r\n}\r\n\r\nexport const missileGuidanceService = new MissileGuidanceService();\r\n",
+    "functionName": "calculateGuidanceVector",
+    "functionType": "navigation",
+    "dependencies": [
+      "./interfaces"
+    ]
+  },
+  "mutants": [
+    {
+      "id": "semantic_mut_001",
+      "description": "GPS signal degradation during missile guidance critical phase",
+      "mutatedCode": "gpsSignal.satellites -= 3; gpsSignal.accuracy += 10.0;",
+      "failureScenario": "GPS receiver loses 3+ satellites during terminal guidance phase",
+      "riskLevel": "critical",
+      "defenseSystemImpact": "Missile guidance switches to inertial navigation, reduced accuracy",
+      "originalLine": 47,
+      "mutatedLine": 47
+    },
+    {
+      "id": "semantic_mut_002",
+      "description": "GPS signal spoofing attack",
+      "mutatedCode": "gpsSignal.targetCoordinates = {latitude: 0, longitude: 0, altitude:0};",
+      "failureScenario": "Adversary spoofs GPS signal to incorrect location",
+      "riskLevel": "critical",
+      "defenseSystemImpact": "Missile misses target, potential collateral damage",
+      "originalLine": 47,
+      "mutatedLine": 47
+    },
+    {
+      "id": "semantic_mut_003",
+      "description": "Communication timeout between guidance and GPS systems",
+      "mutatedCode": "gpsSignal.timestamp = Date.now() - (MissileGuidanceService.COMMUNICATION_TIMEOUT * 2);",
+      "failureScenario": "Communication link between GPS and guidance system fails",
+      "riskLevel": "critical",
+      "defenseSystemImpact": "Backup navigation activated; reduced accuracy and increased risk",
+      "originalLine": 53,
+      "mutatedLine": 53
+    },
+    {
+      "id": "semantic_mut_004",
+      "description": "Sensor noise affecting target coordinates",
+      "mutatedCode": "guidanceData.targetCoordinates.latitude += Math.random() * 10 - 5; guidanceData.targetCoordinates.longitude += Math.random() * 10 -5;",
+      "failureScenario": "Radar or other sensor provides inaccurate target location",
+      "riskLevel": "high",
+      "defenseSystemImpact": "Inaccurate missile guidance, potential miss or collateral damage",
+      "originalLine": 62,
+      "mutatedLine": 62
+    },
+    {
+      "id": "semantic_mut_005",
+      "description": "Power fluctuation affecting sensor accuracy",
+      "mutatedCode": "const distanceToTarget = this.calculateDistance(guidanceData.currentPosition, guidanceData.targetCoordinates) * (1 + Math.random() * 0.1);",
+      "failureScenario": "Power surge/dip impacts distance calculation",
+      "riskLevel": "medium",
+      "defenseSystemImpact": "Slight inaccuracy in distance calculation, impacting course correction",
+      "originalLine": 60,
+      "mutatedLine": 60
+    },
+    {
+      "id": "semantic_mut_006",
+      "description": "Clock drift impacting timing calculations",
+      "mutatedCode": "const currentTime = Date.now() + 5000; // Simulate 5-second clock drift",
+      "failureScenario": "System clock drifts significantly impacting time-sensitive calculations",
+      "riskLevel": "medium",
+      "defenseSystemImpact": "Inaccurate timing calculations in terminal phase",
+      "originalLine": 51,
+      "mutatedLine": 51
+    },
+    {
+      "id": "semantic_mut_007",
+      "description": "Jamming affecting signal strength",
+      "mutatedCode": "gpsSignal.signalStrength = 0.2; // Simulate severe jamming",
+      "failureScenario": "Electronic warfare reduces GPS signal strength below threshold",
+      "riskLevel": "critical",
+      "defenseSystemImpact": "GPS validation fails, system switches to backup navigation",
+      "originalLine": 55,
+      "mutatedLine": 55
+    }
+  ],
+  "generatedAt": "2025-09-10T14:55:04.380Z"
+}

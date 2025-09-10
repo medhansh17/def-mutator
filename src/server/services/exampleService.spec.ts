@@ -1,23 +1,25 @@
-import { ExampleService } from "./exampleService"
+import { ExampleService } from "./exampleService";
 
-describe('Example Service', () => {
-    let service: ExampleService;
+describe("ExampleService", () => {
+  let service: ExampleService;
 
-    beforeEach(() => {
-        service = new ExampleService();
-    });
+  beforeEach(() => {
+    service = new ExampleService();
+  });
 
-    it('send valid parameter', () => {
-        const param = 'EXAMPLE_TEST';
+  it("should return the provided parameter when valid", () => {
+    const param = "EXAMPLE_TEST";
+    const result = service.postExample(param);
+    expect(result).toEqual(param);
+  });
 
-        const result = service.postExample(param);
+  it("should return DEFAULT when no parameter provided", () => {
+    const result = service.postExample();
+    expect(result).toEqual("DEFAULT");
+  });
 
-        expect(result).toEqual(param);
-    });
-
-    it('send invalid parameter', () => {
-        const result = service.postExample();
-
-        expect(result).toEqual('DEFAULT');
-    });
-})
+  it("should handle empty string parameter", () => {
+    const result = service.postExample("");
+    expect(result).toEqual("DEFAULT");
+  });
+});
