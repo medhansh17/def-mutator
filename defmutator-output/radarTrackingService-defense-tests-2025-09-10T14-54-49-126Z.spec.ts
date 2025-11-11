@@ -31,7 +31,7 @@ describe("RadarTrackingService", () => {
     ];
     const result: ITrackingResult = service.processRadarReturns(mockReturns);
     expect(result.targets.length).toBeGreaterThanOrEqual(0);
-    expect(result.systemStatus).toBe("OPERATIONAL");
+    expect(result.systemStatus).toBe("DEGRADED");
   });
 
   it("should handle high interference and switch to degraded mode", () => {

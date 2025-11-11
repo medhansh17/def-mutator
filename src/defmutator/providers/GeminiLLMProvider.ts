@@ -14,7 +14,7 @@ export class GeminiLLMProvider implements ILLMProvider {
     context: IMutationContext
   ): Promise<ISemanticMutant[]> {
     const prompt = this.createSemanticMutationPrompt(context);
-
+    
     try {
       const result = await this.model.generateContent(prompt);
       const response = await result.response;

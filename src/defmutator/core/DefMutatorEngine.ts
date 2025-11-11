@@ -2,10 +2,16 @@ import * as fs from "fs";
 import * as path from "path";
 import { ILLMProvider, IMutationContext, ISemanticMutant } from "../interfaces";
 import { GeminiLLMProvider } from "../providers";
+import { ContextRiskAnalyzer } from "./ContextRiskAnalyzer";
+import { RLMutantScheduler } from "./RLMutantScheduler";
+import { MultimodalContextAnalyzer } from "./MultimodalContextAnalyzer";
 
 export class DefMutatorEngine {
   private llmProvider: ILLMProvider;
   private outputDir: string;
+  private contextAnalyzer: ContextRiskAnalyzer;
+  private rlScheduler: RLMutantScheduler;
+  private multimodalAnalyzer: MultimodalContextAnalyzer;
 
   constructor(
     geminiApiKey: string,
@@ -14,6 +20,9 @@ export class DefMutatorEngine {
   ) {
     this.llmProvider = new GeminiLLMProvider(geminiApiKey, modelName);
     this.outputDir = outputDir;
+    this.contextAnalyzer = new ContextRiskAnalyzer();
+    this.rlScheduler = new RLMutantScheduler();
+    this.multimodalAnalyzer = new MultimodalContextAnalyzer();
     this.ensureOutputDirectory();
   }
 
@@ -53,8 +62,49 @@ export class DefMutatorEngine {
       );
       console.log(`🧪 Generated enhanced defense-specific test suite`);
 
-      // Save results
-      await this.saveResults(filePath, mutants, testCode, context);
+      // Advanced Analysis: Context-Risk Correlation
+      console.log(`📊 Performing Context-Risk Correlation Analysis...`);
+      const contextRiskMetrics = this.contextAnalyzer.analyzeContextRiskCorrelation(
+        mutants,
+        context
+      );
+      console.log(
+        `   ✓ Context-aware mutations: ${contextRiskMetrics.improvementFactor.toFixed(
+          1
+        )}× better detection`
+      );
+
+      // Advanced Analysis: RL-based Scheduling
+      console.log(`🤖 Optimizing mutant execution with RL scheduling...`);
+      const schedulingMetrics = this.rlScheduler.optimizeSchedule(mutants);
+      console.log(
+        `   ✓ Cost reduction: ${schedulingMetrics.costReduction.toFixed(
+          0
+        )}%, Detection: ${(schedulingMetrics.detectionRate * 100).toFixed(0)}%`
+      );
+
+      // Advanced Analysis: Multimodal Context
+      console.log(`🔬 Running Multimodal Context Analysis...`);
+      const multimodalResult = this.multimodalAnalyzer.analyzeMultimodal(
+        context,
+        mutants
+      );
+      console.log(
+        `   ✓ High-risk regions: ${
+          multimodalResult.highRiskRegions.length
+        }, Improvement: ${multimodalResult.improvementFactor.toFixed(1)}×`
+      );
+
+      // Save results with advanced metrics
+      await this.saveResults(
+        filePath,
+        mutants,
+        testCode,
+        context,
+        contextRiskMetrics,
+        schedulingMetrics,
+        multimodalResult
+      );
 
       return { mutants, testCode, context };
     } catch (error) {
@@ -109,12 +159,15 @@ export class DefMutatorEngine {
     filePath: string,
     mutants: ISemanticMutant[],
     testCode: string,
-    context: IMutationContext
+    context: IMutationContext,
+    contextRiskMetrics?: any,
+    schedulingMetrics?: any,
+    multimodalResult?: any
   ): Promise<void> {
     const fileName = path.basename(filePath, ".ts");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
-    // Save mutants as JSON
+    // Save mutants as JSON with advanced metrics
     const mutantsFile = path.join(
       this.outputDir,
       `${fileName}-mutants-${timestamp}.json`
@@ -126,6 +179,11 @@ export class DefMutatorEngine {
           sourceFile: filePath,
           context,
           mutants,
+          advancedMetrics: {
+            contextRiskCorrelation: contextRiskMetrics,
+            rlScheduling: schedulingMetrics,
+            multimodalAnalysis: multimodalResult,
+          },
           generatedAt: new Date().toISOString(),
         },
         null,
@@ -140,9 +198,73 @@ export class DefMutatorEngine {
     );
     fs.writeFileSync(testFile, testCode);
 
-    console.log(`💾 Results saved:`);
-    console.log(`   📊 Mutants: ${mutantsFile}`);
-    console.log(`   🧪 Tests: ${testFile}`);
+    // Save advanced analysis report
+    if (contextRiskMetrics && schedulingMetrics && multimodalResult) {
+      const reportFile = path.join(
+        this.outputDir,
+        `${fileName}-analysis-${timestamp}.md`
+      );
+      const report = this.generateAdvancedReport(
+        fileName,
+        contextRiskMetrics,
+        schedulingMetrics,
+        multimodalResult
+      );
+      fs.writeFileSync(reportFile, report);
+      console.log(`💾 Results saved:`);
+      console.log(`   📊 Mutants: ${mutantsFile}`);
+      console.log(`   🧪 Tests: ${testFile}`);
+      console.log(`   📋 Analysis: ${reportFile}`);
+    } else {
+      console.log(`💾 Results saved:`);
+      console.log(`   📊 Mutants: ${mutantsFile}`);
+      console.log(`   🧪 Tests: ${testFile}`);
+    }
+  }
+
+  private generateAdvancedReport(
+    fileName: string,
+    contextRiskMetrics: any,
+    schedulingMetrics: any,
+    multimodalResult: any
+  ): string {
+    let report = `# DefMutator Advanced Analysis Report\n\n`;
+    report += `**File**: ${fileName}\n`;
+    report += `**Generated**: ${new Date().toISOString()}\n\n`;
+    report += `---\n\n`;
+
+    // Context-Risk Correlation
+    report += this.contextAnalyzer.generateCorrelationReport(
+      contextRiskMetrics
+    );
+    report += `\n---\n\n`;
+
+    // RL Scheduling
+    report += this.rlScheduler.generateSchedulingReport(schedulingMetrics);
+    report += `\n---\n\n`;
+
+    // Multimodal Analysis
+    report += this.multimodalAnalyzer.generateMultimodalReport(
+      multimodalResult
+    );
+    report += `\n---\n\n`;
+
+    report += `## Summary\n\n`;
+    report += `DefMutator employs three novel techniques:\n\n`;
+    report += `1. **Context-Risk Correlation**: ${contextRiskMetrics.improvementFactor.toFixed(
+      1
+    )}× improvement through defense-aware mutation\n`;
+    report += `2. **RL-based Scheduling**: ${schedulingMetrics.costReduction.toFixed(
+      0
+    )}% cost reduction with ${(schedulingMetrics.detectionRate * 100).toFixed(
+      0
+    )}%+ detection\n`;
+    report += `3. **Multimodal Analysis**: ${multimodalResult.improvementFactor.toFixed(
+      1
+    )}× better fault detection in high-risk regions\n\n`;
+    report += `These techniques combine to deliver superior mutation testing for defense-critical systems.\n`;
+
+    return report;
   }
 
   private async generateSummaryReport(results: any[]): Promise<void> {
